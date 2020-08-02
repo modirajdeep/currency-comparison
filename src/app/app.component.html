@@ -1,10 +1,10 @@
 <mat-toolbar color="primary">
-  <button mat-icon-button class="example-icon">
+	<button mat-icon-button class="example-icon">
     <mat-icon>menu</mat-icon>
   </button>
 	<span style="margin-left: 10px;">Currency Comparison</span>
-  <span class="example-spacer"></span>
-  <button mat-icon-button class="example-icon">
+	<span class="example-spacer"></span>
+	<button mat-icon-button class="example-icon">
    <mat-icon>share</mat-icon>
  </button>
 </mat-toolbar>
@@ -22,7 +22,7 @@
 		</div>
 		<div>
 			<mat-form-field appearance="standard" style="width: 150px;padding-left: 10px;">
-        <span style="margin-right: 10px;" matPrefix>{{fromCurrency}}</span>
+				<span style="margin-right: 10px;" matPrefix>{{fromCurrency}}</span>
 				<mat-label>Amount</mat-label>
 				<input matInput type="number" [(ngModel)]="input" (ngModelChange)="handleInputChange()">
     </mat-form-field>
@@ -101,13 +101,17 @@
 				{{ exchangedPM | currency:toCurrency:dc:dic }} &nbsp;
 				<strong>Monthly</strong>
 			</mat-list-item>
-			<mat-divider></mat-divider>
 		</mat-list>
+		<div style="display: block;">
+			<canvas style="border-left: 1px solid lightgrey;border-right: 1px solid lightgrey;border-bottom: 1px solid lightgrey;" baseChart [datasets]="barChartData" [labels]="barChartLabels" [options]="barChartOptions"
+				[plugins]="barChartPlugins" [legend]="barChartLegend" [chartType]="barChartType">
+			</canvas>
+		</div>
 		<mat-action-row>
 			<button mat-raised-button color="primary" (click)="currencyChange();">
         <mat-icon>refresh</mat-icon> Refresh Rates
       </button>
-      <button mat-raised-button color="primary" (click)="handleSwap();">
+			<button mat-raised-button color="primary" (click)="handleSwap();">
         <mat-icon>swap_vert</mat-icon> Swap
       </button>
 		</mat-action-row>

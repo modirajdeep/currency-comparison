@@ -6,7 +6,17 @@ import { UiService } from "./ui.service";
 import { WebworkerService } from "./webworker.service";
 import { guessGross } from "./guess.script";
 import { Observable, Subject } from "rxjs";
-import { trigger, state, style, animate, transition } from '@angular/animations';
+import {
+  trigger,
+  state,
+  style,
+  animate,
+  transition
+} from "@angular/animations";
+
+import { ChartOptions, ChartType, ChartDataSets } from "chart.js";
+import * as pluginDataLabels from "chartjs-plugin-datalabels";
+import { Label } from "ng2-charts";
 
 export interface Bracket {
   min: number;
@@ -90,32 +100,21 @@ const serverData = (selectedCountry, targetCountry): ServerData => {
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.css"],
   animations: [
-    trigger(
-      'inOutAnimation', 
-      [
-        transition(
-          ':enter', 
-          [
-            style({ height: 0, opacity: 0 }),
-            animate('250ms ease-out', 
-                    style({ height: 35, opacity: 1 }))
-          ]
-        ),
-        transition(
-          ':leave', 
-          [
-            style({ height: 35, opacity: 1 }),
-            animate('250ms ease-in', 
-                    style({ height: 0, opacity: 0 }))
-          ]
-        )
-      ]
-    )
+    trigger("inOutAnimation", [
+      transition(":enter", [
+        style({ height: 0, opacity: 0 }),
+        animate("250ms ease-out", style({ height: 35, opacity: 1 }))
+      ]),
+      transition(":leave", [
+        style({ height: 35, opacity: 1 }),
+        animate("250ms ease-in", style({ height: 0, opacity: 0 }))
+      ])
+    ])
   ]
 })
 export class AppComponent {
   displayedColumns = ["bracket", "tax", "amount"];
-  input = 0; // before tax
+  input = 850000; // before tax
   grossPA = 0; // before tax
   grossPM = 0; // before tax
   netPA = 0; // after tax
@@ -127,7 +126,7 @@ export class AppComponent {
   exemption = false;
   isInputPA = false;
   fromCountry = "India";
-  toCountry = "India";
+  toCountry = "Netherlands";
   fromCurrency = "";
   toCurrency = "";
   exchangeRate = 1;
@@ -343,5 +342,66 @@ export class AppComponent {
     this.fromPPPYear = this.serverData.from.pppUpdated;
     this.toPPPYear = this.serverData.to.pppUpdated;
     this.toPPPPM = (PM / this.pppFrom) * this.pppTo;
+    this.setComparisionChart();
+  }
+
+  public barChartOptions: ChartOptions = {
+    responsive: true,
+    plugins: {
+      datalabels: {
+        display: false
+      }
+    },
+    legend: {
+      position: "bottom"
+    },
+    tooltips: false,
+    scales: {
+      yAxes: [
+        {
+          gridLines: {
+            drawBorder: false
+          },
+          ticks: {
+            display: false
+          }
+        }
+      ],
+      xAxes: [
+        {
+          gridLines: {
+            display: false
+          }
+        }
+      ]
+    },
+    hover: {
+      axis: "y"
+    }
+  };
+  public barChartLabels: Label[] = [];
+  public barChartType: ChartType = "horizontalBar";
+  public barChartLegend = true;
+  public barChartPlugins = [pluginDataLabels];
+
+  public barChartData: ChartDataSets[] = [];
+
+  setComparisionChart() {
+    const { PM } = this.perData;
+    this.barChartLabels = [this.toCountry];
+    this.barChartData = [
+      {
+        data: [this.round(this.exchangedPM)],
+        label: "Exchange",
+        backgroundColor: "#F8DE7E",
+        hoverBackgroundColor: "#F8DE7E"
+      },
+      {
+        data: [this.round(this.toPPPPM)],
+        label: "PPP",
+        backgroundColor: "#3CB371",
+        hoverBackgroundColor: "#3CB371"
+      }
+    ];
   }
 }

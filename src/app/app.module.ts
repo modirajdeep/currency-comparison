@@ -26,6 +26,8 @@ import { HttpClientModule } from "@angular/common/http";
 
 import { OverlayModule } from "@angular/cdk/overlay";
 
+import { ChartsModule } from "ng2-charts";
+
 @NgModule({
   imports: [
     BrowserModule,
@@ -47,7 +49,8 @@ import { OverlayModule } from "@angular/cdk/overlay";
     MatSnackBarModule,
     MatButtonToggleModule,
     OverlayModule,
-    MatToolbarModule
+    MatToolbarModule,
+    ChartsModule
   ],
   declarations: [AppComponent],
   bootstrap: [AppComponent]
