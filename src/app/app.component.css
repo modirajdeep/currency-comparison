@@ -1,0 +1,31 @@
+button {
+  display: block;
+  margin: 0 auto;
+  clear: both;
+}
+
+mat-toolbar {
+  height: 64px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  width: 100% !important;
+}
+
+.example-spacer {
+  flex: 1 1 auto;
+}
+
+.example-right-align {
+  text-align: right;
+}
+
+input.example-right-align::-webkit-outer-spin-button,
+input.example-right-align::-webkit-inner-spin-button {
+  display: none;
+}
+
+input.example-right-align {
+  -moz-appearance: textfield;
+}
