@@ -1,39 +1,57 @@
-<mat-toolbar color="primary">
-	<button mat-icon-button class="example-icon">
+<mat-toolbar color="primary" class="top-nav">
+	<!-- <button mat-icon-button>
     <mat-icon>menu</mat-icon>
-  </button>
-	<span style="margin-left: 10px;">Currency Comparison</span>
+  </button> -->
+	<!-- <span style="margin-left: 10px;">Currency Comparison</span> -->
+	<mat-form-field floatLabel="never" appearance="standard" class="source-country-form">
+		<!-- <mat-label>Source Country</mat-label> -->
+		<mat-select [(ngModel)]="fromCountry" (ngModelChange)="countryChange()">
+			<mat-option *ngFor="let option of countryOptions" [value]="option">{{option}}
+			</mat-option>
+		</mat-select>
+	</mat-form-field>
 	<span class="example-spacer"></span>
-	<button mat-icon-button class="example-icon">
+	<button mat-icon-button>
    <mat-icon>share</mat-icon>
  </button>
 </mat-toolbar>
+<mat-toolbar class="sub-nav">
 
-<mat-card style="margin-top: 64px;">
+	<mat-form-field floatLabel="never" appearance="standard" class="input-amount-form">
+		<span style="margin-right: 7px;" matPrefix>{{fromCurrency}}</span>
+		<!-- <mat-label>Amount</mat-label> -->
+		<input matInput type="number" [(ngModel)]="input" (ngModelChange)="handleInputChange()" placeholder="Amount">
+    </mat-form-field>
+		<mat-slide-toggle style="padding-left: 10px;" color="primary" [(ngModel)]="isInputPA"
+			(ngModelChange)="refreshBrackets()">{{yearToggleText}}</mat-slide-toggle>
+		<mat-card-actions>
+			<mat-button-toggle-group style="margin-top: 10px;margin-left: 10px;" (change)="modeChange($event)"
+				[value]="mode">
+				<mat-button-toggle value="gross" aria-label="Text align left">
+					Gross
+				</mat-button-toggle>
+				<mat-button-toggle value="net" aria-label="Text align center">
+					Net
+				</mat-button-toggle>
+			</mat-button-toggle-group>
+		</mat-card-actions>
+</mat-toolbar>
+
+<mat-card style="margin-top: 170px;">
 	<mat-card-content>
 		<div>
-			<mat-form-field appearance="standard" style="width: 120px;padding-left: 10px;">
-				<mat-label>Source Country</mat-label>
-				<mat-select [(ngModel)]="fromCountry" (ngModelChange)="countryChange()">
-					<mat-option *ngFor="let option of countryOptions" [value]="option">{{option}}
-					</mat-option>
-				</mat-select>
-			</mat-form-field>
+
 		</div>
 		<div>
-			<mat-form-field appearance="standard" style="width: 150px;padding-left: 10px;">
-				<span style="margin-right: 10px;" matPrefix>{{fromCurrency}}</span>
-				<mat-label>Amount</mat-label>
-				<input matInput type="number" [(ngModel)]="input" (ngModelChange)="handleInputChange()">
-    </mat-form-field>
-				<mat-slide-toggle style="padding-left: 10px;" color="primary" [(ngModel)]="isInputPA"
-					(ngModelChange)="refreshBrackets()">{{yearToggleText}}</mat-slide-toggle>
+
+			<!-- <mat-slide-toggle style="padding-left: 10px;" color="primary" [(ngModel)]="isInputPA"
+				(ngModelChange)="refreshBrackets()">{{yearToggleText}}</mat-slide-toggle> -->
 		</div>
 		<div [@inOutAnimation] *ngIf="mode == 'gross' && fromCurrency == 'EUR'">
 			<mat-checkbox color="primary" style="padding-left: 10px; padding-right: 10px;" [(ngModel)]="exemption"
 				(ngModelChange)="refreshBrackets()">30% Exemption</mat-checkbox>
 		</div>
-		<mat-card-actions>
+		<!-- <mat-card-actions>
 			<mat-button-toggle-group style="margin-top: 10px;margin-left: 10px;" (change)="modeChange($event)"
 				[value]="mode">
 				<mat-button-toggle value="non" aria-label="Text align right">
@@ -46,21 +64,29 @@
 					Net
 				</mat-button-toggle>
 			</mat-button-toggle-group>
-		</mat-card-actions>
+		</mat-card-actions> -->
 	</mat-card-content>
 	<mat-card-footer [@inOutAnimation] *ngIf="mode != 'non'">
 		<mat-list>
 			<mat-divider></mat-divider>
 			<mat-list-item>
 				<strong>Yearly &nbsp;</strong>
-				{{ grossPA | currency:fromCurrency:dc:dic }} - {{ totalTaxPA | currency:fromCurrency:dc:dic }} =
-				{{ netPA | currency:fromCurrency:dc:dic }}
+			</mat-list-item>
+			<mat-list-item>
+				{{ grossPA | currencyFormatter:fromCurrency }} - {{ totalTaxPA | currencyFormatter:fromCurrency }} =
+			</mat-list-item>
+			<mat-list-item>
+				{{ netPA | currencyFormatter:fromCurrency }}
 			</mat-list-item>
 			<mat-divider></mat-divider>
 			<mat-list-item>
 				<strong>Monthly &nbsp;</strong>
-				{{ grossPM | currency:fromCurrency:dc:dic }} - {{ totalTaxPM | currency:fromCurrency:dc:dic }} =
-				{{ netPM | currency:fromCurrency:dc:dic }}
+			</mat-list-item>
+			<mat-list-item>
+				{{ grossPM | currencyFormatter:fromCurrency }} - {{ totalTaxPM | currencyFormatter:fromCurrency }} =
+			</mat-list-item>
+			<mat-list-item>
+				{{ netPM | currencyFormatter:fromCurrency }}
 			</mat-list-item>
 		</mat-list>
 	</mat-card-footer>
@@ -83,28 +109,33 @@
 			</mat-select>
 		</mat-form-field>
 		<p>
-			In {{fromCountry}} ({{fromPPPYear}}), {{ perData.PM | currency:fromCurrency:dc:dic }} will allow you to
-			buy the same things you'd buy with {{ toPPPPM | currency:toCurrency:dc:dic }} in
-			{{toCountry}} ({{toPPPYear}}).
+			In <strong>{{fromCountry}} ({{fromPPPYear}}) {{ perData.PM | currencyFormatter:fromCurrency }}</strong> will
+			allow you to
+			buy the same things you'd buy with
+			<strong>
+        {{ toPPPPM | currencyFormatter:toCurrency }} in {{toCountry}} ({{toPPPYear}})
+      </strong>
 		</p>
-		<p>
-			<strong>Exchange at &nbsp;</strong> {{exchangeRate | currency:toCurrency }} :
-		</p>
+		<h3>
+			Exchange {{ 1 | currencyFormatter:fromCurrency }} = {{exchangeRate | currencyFormatter:toCurrency }}
+		</h3>
 		<mat-list>
 			<mat-divider></mat-divider>
 			<mat-list-item>
-				{{ exchangedPA | currency:toCurrency:dc:dic }} &nbsp;
+				{{ exchangedPA | currencyFormatter:toCurrency }} &nbsp;
 				<strong>Yearly</strong>
 			</mat-list-item>
 			<mat-divider></mat-divider>
 			<mat-list-item>
-				{{ exchangedPM | currency:toCurrency:dc:dic }} &nbsp;
+				{{ exchangedPM | currencyFormatter:toCurrency }} &nbsp;
 				<strong>Monthly</strong>
 			</mat-list-item>
 		</mat-list>
 		<div style="display: block;">
-			<canvas style="border-left: 1px solid lightgrey;border-right: 1px solid lightgrey;border-bottom: 1px solid lightgrey;" baseChart [datasets]="barChartData" [labels]="barChartLabels" [options]="barChartOptions"
-				[plugins]="barChartPlugins" [legend]="barChartLegend" [chartType]="barChartType">
+			<canvas
+				style="border-left: 1px solid lightgrey;border-right: 1px solid lightgrey;border-bottom: 1px solid lightgrey;"
+				baseChart [datasets]="comparisonChartData" [labels]="comparisonChartLabels"
+				[options]="comparisonChartOptions" [plugins]="chartPlugins" chartType="horizontalBar">
 			</canvas>
 		</div>
 		<mat-action-row>
@@ -122,24 +153,31 @@
 				<strong>Tax Brackets</strong>
 			</mat-panel-title>
 		</mat-expansion-panel-header>
+		<div style="display: block;">
+			<canvas
+				style="border-left: 1px solid lightgrey;border-right: 1px solid lightgrey;border-bottom: 1px solid lightgrey;"
+				baseChart [data]="bracketsChartData" [labels]="bracketsChartLabels" [options]="bracketsChartOptions"
+				[plugins]="chartPlugins" [colors]="bracketsChartColors" chartType="pie">
+			</canvas>
+		</div>
 		<mat-table [dataSource]="grossBrackets" class="mat-elevation-z6">
 			<ng-container matColumnDef="bracket">
 				<mat-header-cell *matHeaderCellDef> Bracket </mat-header-cell>
-				<mat-cell *matCellDef="let element"> {{element.min | currency:fromCurrency:dc:dic}} to
-					{{element.max | currency:fromCurrency:dc:dic}} </mat-cell>
+				<mat-cell *matCellDef="let element"> {{element.min | currencyFormatter:fromCurrency}} to
+					{{element.max | currencyFormatter:fromCurrency}} </mat-cell>
 			</ng-container>
 
 			<ng-container matColumnDef="tax">
 				<mat-header-cell *matHeaderCellDef> Tax % </mat-header-cell>
 				<mat-cell *matCellDef="let element">
-					{{element.tax | currency:fromCurrency:dc:dic }}%
+					{{element.tax | currencyFormatter:fromCurrency }}%
 				</mat-cell>
 			</ng-container>
 
 			<ng-container matColumnDef="amount">
 				<mat-header-cell *matHeaderCellDef> Taxable Amount </mat-header-cell>
 				<mat-cell *matCellDef="let element">
-					{{element.taxedAmount | currency:fromCurrency:dc:dic}}
+					{{element.taxedAmount | currencyFormatter:fromCurrency}}
 				</mat-cell>
 			</ng-container>
 

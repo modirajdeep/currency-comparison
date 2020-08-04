@@ -16,7 +16,7 @@
     "chart.js": "^2.9.3",
     "chartjs-plugin-datalabels": "^0.7.0",
     "core-js": "^3.6.5",
-    "country-locale-map": "^1.4.8",
+    "currency-formatter": "^1.5.5",
     "ng2-charts": "^2.3.2",
     "rxjs": "^6.6.2",
     "tslib": "^2.0.0",

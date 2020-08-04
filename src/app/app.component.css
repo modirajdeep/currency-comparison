@@ -4,13 +4,37 @@ button {
   clear: both;
 }
 
-mat-toolbar {
-  height: 64px;
+mat-toolbar.top-nav {
+  height: 75px;
   position: fixed;
   top: 0;
   left: 0;
   z-index: 100;
   width: 100% !important;
+}
+
+.source-country-form {
+  margin-left: 1em;
+  width: 40vw;
+  max-width: 200px;
+  min-width: 100px;
+}
+
+.input-amount-form {
+  margin-left: 0.6em;
+  width: 40vw;
+  max-width: 300px;
+  min-width: 100px;
+}
+
+mat-toolbar.sub-nav {
+  height: 75px;
+  position: fixed;
+  top: 75px;
+  left: 0;
+  z-index: 100;
+  width: 100% !important;
+  background: lightgray;
 }
 
 .example-spacer {

@@ -28,6 +28,8 @@ import { OverlayModule } from "@angular/cdk/overlay";
 
 import { ChartsModule } from "ng2-charts";
 
+import { CurrencyFormatterPipe } from "./currency-formatter.pipe";
+
 @NgModule({
   imports: [
     BrowserModule,
@@ -52,7 +54,7 @@ import { ChartsModule } from "ng2-charts";
     MatToolbarModule,
     ChartsModule
   ],
-  declarations: [AppComponent],
+  declarations: [AppComponent, CurrencyFormatterPipe],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

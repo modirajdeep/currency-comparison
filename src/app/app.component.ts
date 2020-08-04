@@ -18,74 +18,19 @@ import { ChartOptions, ChartType, ChartDataSets } from "chart.js";
 import * as pluginDataLabels from "chartjs-plugin-datalabels";
 import { Label } from "ng2-charts";
 
-export interface Bracket {
-  min: number;
-  max: number;
-  tax: number;
-  taxableAmount?: number;
-  taxedAmount?: number;
-}
+import {
+  to,
+  percent,
+  round,
+  handleError,
+  allCountryData,
+  formatCurrency,
+  abbreviateCurrency,
+  ComparisonChartOptions,
+  BracketsChartOptions
+} from "./helper";
 
-export interface CountryBracketData {
-  name: string;
-  currencyCode: string;
-  taxBrackets: Bracket[];
-  ppp: number;
-  pppUpdated: string;
-}
-
-export interface ServerData {
-  to: CountryBracketData;
-  from: CountryBracketData;
-}
-
-const to = promise =>
-  promise
-    .then(data => {
-      return [null, data];
-    })
-    .catch(err => [err]);
-
-const handleError = (that, message, error) => {
-  if (error) {
-    console.error(error);
-    that.snackBar.open(message, "", {
-      duration: 600
-    });
-    return true;
-  }
-  return false;
-};
-
-const allCountryData: { [key: string]: CountryBracketData } = {
-  Netherlands: {
-    name: "Netherlands",
-    currencyCode: "EUR",
-    taxBrackets: [
-      { min: 0, max: 20384, tax: 36.65 },
-      { min: 20385, max: 34300, tax: 38.1 },
-      { min: 34301, max: 68507, tax: 38.1 },
-      { min: 68508, max: Infinity, tax: 51.75 }
-    ],
-    ppp: 0.78,
-    pppUpdated: "2019"
-  },
-  India: {
-    name: "India",
-    currencyCode: "INR",
-    taxBrackets: [
-      { min: 0, max: 250000, tax: 0 },
-      { min: 250001, max: 500000, tax: 5 },
-      { min: 500001, max: 750000, tax: 10 },
-      { min: 750001, max: 1000000, tax: 15 },
-      { min: 1000001, max: 1250000, tax: 20 },
-      { min: 1250001, max: 1500000, tax: 25 },
-      { min: 1500001, max: Infinity, tax: 30 }
-    ],
-    ppp: 21.21,
-    pppUpdated: "2019"
-  }
-};
+import { ServerData } from "./interface";
 
 const serverData = (selectedCountry, targetCountry): ServerData => {
   const response: ServerData = {
@@ -188,14 +133,6 @@ export class AppComponent {
 
   ngOnDestroy() {}
 
-  percent(val) {
-    return (100 - val) / 100;
-  }
-
-  round(val) {
-    return Math.round((val + Number.EPSILON) * 100) / 100;
-  }
-
   get hasExemption() {
     return this.exemption && this.fromCurrency == "EUR";
   }
@@ -254,10 +191,10 @@ export class AppComponent {
         } else {
           bracket.taxableAmount = 0;
         }
-        if (bracket.taxableAmount) {
+        bracket.taxedAmount =
+          bracket.taxableAmount * (1 - percent(bracket.tax));
+        if (bracket.taxedAmount > 5) {
           grossBrackets.push(bracket);
-          bracket.taxedAmount =
-            bracket.taxableAmount * (1 - this.percent(bracket.tax));
           totalTaxPA += bracket.taxedAmount;
         }
       });
@@ -287,7 +224,7 @@ export class AppComponent {
       if (bracket.taxableAmount) {
         grossBrackets.push(bracket);
         bracket.taxedAmount =
-          bracket.taxableAmount * (1 - this.percent(bracket.tax));
+          bracket.taxableAmount * (1 - percent(bracket.tax));
         totalTaxPA += bracket.taxedAmount;
       }
     });
@@ -342,65 +279,90 @@ export class AppComponent {
     this.fromPPPYear = this.serverData.from.pppUpdated;
     this.toPPPYear = this.serverData.to.pppUpdated;
     this.toPPPPM = (PM / this.pppFrom) * this.pppTo;
-    this.setComparisionChart();
+    this.setComparisonChart();
+    this.setBracketsChart();
   }
 
-  public barChartOptions: ChartOptions = {
-    responsive: true,
-    plugins: {
-      datalabels: {
-        display: false
-      }
-    },
-    legend: {
-      position: "bottom"
-    },
-    tooltips: false,
-    scales: {
-      yAxes: [
-        {
-          gridLines: {
-            drawBorder: false
-          },
-          ticks: {
-            display: false
-          }
-        }
-      ],
-      xAxes: [
-        {
-          gridLines: {
-            display: false
-          }
-        }
-      ]
-    },
-    hover: {
-      axis: "y"
-    }
-  };
-  public barChartLabels: Label[] = [];
-  public barChartType: ChartType = "horizontalBar";
-  public barChartLegend = true;
-  public barChartPlugins = [pluginDataLabels];
+  public chartPlugins = [pluginDataLabels];
+  public comparisonChartOptions = ComparisonChartOptions;
+  public comparisonChartLabels: Label[] = [];
+  public comparisonChartData: ChartDataSets[] = [];
+  public bracketsChartOptions = BracketsChartOptions;
+  public bracketsChartLabels: Label[] = [];
+  public bracketsChartData: ChartDataSets[] = [];
+  public bracketsChartColors = [];
 
-  public barChartData: ChartDataSets[] = [];
-
-  setComparisionChart() {
+  setComparisonChart() {
     const { PM } = this.perData;
-    this.barChartLabels = [this.toCountry];
-    this.barChartData = [
+    this.comparisonChartLabels = [this.toCountry];
+    this.comparisonChartData = [
       {
-        data: [this.round(this.exchangedPM)],
+        data: [round(this.exchangedPM)],
         label: "Exchange",
         backgroundColor: "#F8DE7E",
         hoverBackgroundColor: "#F8DE7E"
       },
       {
-        data: [this.round(this.toPPPPM)],
+        data: [round(this.toPPPPM)],
         label: "PPP",
         backgroundColor: "#3CB371",
         hoverBackgroundColor: "#3CB371"
+      }
+    ];
+  }
+
+  setBracketsChart() {
+    // const percentColors = [
+    //   { pct: 0.0, color: { r: 0xff, g: 0x00, b: 0 } },
+    //   { pct: 0.5, color: { r: 0xff, g: 0xff, b: 0 } },
+    //   { pct: 1.0, color: { r: 0x00, g: 0xff, b: 0 } }
+    // ];
+    const percentColors = [
+      { pct: 0.0, color: { r: 255, g: 236, b: 179 } },
+      { pct: 0.45, color: { r: 232, g: 82, b: 133 } },
+      { pct: 0.65, color: { r: 106, g: 27, b: 154 } },
+      { pct: 1, color: { r: 0, g: 0, b: 0 } }
+    ];
+    const getColorForPercentage = pct => {
+      for (var i = 1; i < percentColors.length - 1; i++) {
+        if (pct < percentColors[i].pct) {
+          break;
+        }
+      }
+      var lower = percentColors[i - 1];
+      var upper = percentColors[i];
+      var range = upper.pct - lower.pct;
+      var rangePct = (pct - lower.pct) / range;
+      var pctLower = 1 - rangePct;
+      var pctUpper = rangePct;
+      var color = {
+        r: Math.floor(lower.color.r * pctLower + upper.color.r * pctUpper),
+        g: Math.floor(lower.color.g * pctLower + upper.color.g * pctUpper),
+        b: Math.floor(lower.color.b * pctLower + upper.color.b * pctUpper)
+      };
+      return `rgb(${[color.r, color.g, color.b].join(",")})`;
+    };
+    const { PM } = this.perData;
+    let bracketsChartLabels = [],
+      bracketsChartData = [],
+      colors = [];
+    const grossBracketsLength = this.grossBrackets.length;
+    this.grossBrackets.forEach((bracketData, index) => {
+      bracketsChartLabels.push(
+        `${abbreviateCurrency(
+          bracketData.min,
+          this.fromCurrency
+        )} to ${abbreviateCurrency(bracketData.max, this.fromCurrency)}`
+      );
+      bracketsChartData.push(round(bracketData.taxedAmount));
+      colors.push(getColorForPercentage(index / grossBracketsLength));
+    });
+    this.bracketsChartLabels = bracketsChartLabels;
+    this.bracketsChartData = bracketsChartData;
+    this.bracketsChartColors = [
+      {
+        backgroundColor: colors,
+        hoverBackgroundColor: colors
       }
     ];
   }
